@@ -1,76 +1,96 @@
 ---
 name: udp-mobile-dev
-description: Guide development and maintenance of UDP platform mobile pages built with React, TypeScript, and JSON-driven configuration. Use when creating or modifying UDP mobile modules, migrating legacy mobile pages into UDP, working on list/detail pages, requestInfo/toolbar/grid/fieldSetForm/tabPanel JSON, controller/hooks/service/store wiring, attachments or flow actions, multi-form pages, or troubleshooting UDP mobile behavior.
+description: Guide development, modification, and troubleshooting of UDP platform mobile pages built with React, TypeScript, and JSON-driven configuration. Use this skill whenever the user mentions UDP mobile modules, list/detail pages, module JSON, requestInfo, toolbar, grid, fieldSetForm, tabPanel, queryPanel, searchKey, controller/hooks/service/store files, attachments, flow actions, multi-form pages, or migration from older mobile pages, even if they do not explicitly ask for "UDP mobile development".
 ---
 
 # UDP Mobile Dev
 
-Use this skill to develop UDP mobile pages in a config-first way. Keep generated module structure stable, express as much behavior as possible in JSON, and use page code only for business rules and runtime data shaping that configuration cannot cover.
+Use this skill to work on UDP mobile pages in a config-first way. Treat JSON as the first source of truth, keep the generated module layout stable, and push only runtime-dependent behavior into page code.
 
 If the repository has local instructions such as AGENTS.md or commit rules, obey those before applying this skill.
 
-## Quick Routing
+## Start With Routing
 
-1. Identify the task type.
-	- If the repository matches `cip-market-front-udp-h5`, also read `references/cip-market-front-udp-h5.md`.
-	- New module or legacy migration: read `references/workflow.md`.
+1. Read local repository guidance first.
+	- Check AGENTS-like instructions, commit rules, and nearby TXF anchors before editing.
+2. Classify the task and load the relevant references.
+	- `cip-market-front-udp-h5` repository: read `references/cip-market-front-udp-h5.md`.
+	- Query, search, filter, or backend condition shaping: read `references/list-query.md`.
 	- Existing page change: inspect the module JSON plus `list/` and `detail/`, then read `references/page-patterns.md`.
-	- `fieldSetForm` or multi-form issue: read `references/multi-form.md`.
-	- Repeated or unclear bug: read `references/troubleshooting.md` before changing code.
-2. Keep these baseline rules.
-	- Preserve the standard UDP folder layout.
-	- Prefer JSON configuration over ad hoc page logic.
-	- Keep API response normalization in hooks or service files, not scattered in render code.
-	- Centralize state-driven button rules instead of duplicating them across components.
+	- New module or legacy migration: read `references/workflow.md`.
+	- `fieldSetForm` or grouped-form issue: read `references/multi-form.md`.
+	- Repeated or unclear bug: read `references/troubleshooting.md` before patching.
+3. Confirm the scope.
+	- List, detail, or both.
+	- APIs: list, detail, save, delete, submit, history, attachment, and lookup.
+	- Tabs, subtables, permissions, and status fields.
+	- Whether the change is declarative JSON, runtime shaping, or both.
 
-## Working Rules
+## Working Principles
 
-1. Clarify the scope first.
-	- Confirm whether the task touches list, detail, tabs, subtables, attachments, flow actions, or permissions.
-	- Confirm the API set: list, detail, save, delete, submit, history, and attachment-related calls.
-	- Confirm status fields and which actions each status allows.
-2. Map the implementation surface.
-	- JSON usually owns `toolbar`, `requestInfo`, `grid`, `fieldSetForm`, and `tabPanel`.
-	- `list/` usually owns page entry, events, query shaping, API calls, state, and card rendering.
-	- `detail/` usually owns load flow, form config shaping, grid config shaping, save flow, attachments, and submit actions.
-3. Implement in the lowest-cost order.
-	- Make JSON cover the baseline fields, buttons, and endpoints first.
-	- Finish the list page minimal loop: open page, query list, open detail.
-	- Finish detail loading and form rendering.
-	- Add subtables, attachments, flow, and special state rules last.
-4. Validate the affected package.
-	- Run available lint or build commands for the target package.
-	- If full automation is missing, do targeted manual checks and state what remains unverified.
+- Keep the standard UDP folder layout intact.
+- Prefer JSON for stable declarative behavior:
+	- `toolbar`
+	- `requestInfo`
+	- `grid`
+	- `fieldSetForm`
+	- `tabPanel`
+	- simple search settings such as `list.searchBar.searchKey`
+- Use `list/index.tsx` plus JSON for top keyword search behavior.
+- Use hooks or shared utilities for query shaping, default conditions, runtime config derivation, and response normalization.
+- Centralize shared rules such as status gating or query-condition conversion instead of duplicating them per page.
+- Keep display-only formatting close to render components and backend quirks close to service or shared util layers.
 
-## Decision Rules
+## Execution Order
 
-- Use `requestInfo` as the primary API source. Hardcode endpoint defaults only when JSON is missing or incomplete.
-- Keep query assembly, default conditions, and response normalization in hooks or service files.
-- Use hooks to derive form and grid configuration from JSON plus runtime state.
-- Keep button enablement and visibility tied to explicit status rules.
-- For attachments, confirm `bindtable`, `buskey`, and the saved main record id before wiring upload or preview behavior.
-- For flow actions, confirm `appCode`, `bizCode`, `dataId`, and `orgId` sources before implementation.
-- When a field returns an object rather than display text, normalize it before rendering to avoid React child errors.
+1. Make JSON express the baseline layout, endpoints, buttons, and simple search behavior.
+2. Make the list loop stable.
+	- list query
+	- default conditions
+	- search payload
+	- open detail
+3. Make detail loading stable.
+	- load main data
+	- render JSON-derived form config
+	- add child grids after the main flow is correct
+4. Add business actions.
+	- save
+	- delete
+	- submit and history
+	- attachment
+5. Add status rules and special branches last.
+6. Validate the affected package and document any verification gaps.
+
+## High-Value Heuristics
+
+- Before changing query logic, separate these paths:
+	- top Search input driven by `list.searchBar.searchKey`
+	- QueryPanel or QueryDropDown advanced filters
+	- hook-level or shared-util payload shaping
+- If the requirement is "change which field the top keyword search hits", start from JSON before touching hooks.
+- If the requirement is "change what backend condition payload looks like", start from shared query utilities or `list/hooks.tsx`.
+- If multiple pages need the same query transformation, extract it into the shared package instead of keeping per-page copies.
+- For multi-form detail pages, treat the issue as runtime-config composition first, not JSX structure first.
+- For attachment and flow actions, confirm identifiers and main-record identity before editing handlers.
+
+## Quality Bar
+
+- Use the repository-specific validation commands when available.
+- If there is no suitable automated command, do targeted manual checks and say exactly what remains unverified.
+- After solving a UDP issue:
+	1. Check `references/troubleshooting.md` for an existing match.
+	2. Append or update the issue log with symptom, root cause, fix, validation, and reuse notes.
+	3. If the fix changed a preferred pattern, update the relevant reference file too.
 
 ## Update Discipline
-
-After solving any UDP mobile development problem:
-
-1. Open `references/troubleshooting.md` and look for a matching issue first.
-2. Append a new record with these fields:
-	- Symptom
-	- Root cause
-	- Fix
-	- Validation
-	- Reuse notes
-3. If the fix changes the recommended workflow or configuration pattern, update the relevant reference file too.
 
 Treat the troubleshooting reference as a living knowledge base. Do not leave solved issues only in chat history.
 
 ## Resource Map
 
-- `references/workflow.md`: end-to-end migration workflow and validation checklist.
-- `references/page-patterns.md`: standard file responsibilities and config-first implementation patterns.
-- `references/multi-form.md`: `fieldSetForm` multi-form behavior, `apiRef` usage, and common pitfalls.
-- `references/troubleshooting.md`: issue log, update template, and known failure patterns.
-- `references/cip-market-front-udp-h5.md`: repository-specific commands, docs, and validation guidance for the CIP marketing mobile workspace.
+- `references/cip-market-front-udp-h5.md`: repository-specific commands, docs, and validation defaults.
+- `references/workflow.md`: module creation and migration order.
+- `references/page-patterns.md`: file ownership and config-first placement rules.
+- `references/list-query.md`: search, filter, and backend condition shaping patterns.
+- `references/multi-form.md`: grouped form behavior and `fieldSetForm` pitfalls.
+- `references/troubleshooting.md`: living issue log and update discipline.

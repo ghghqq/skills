@@ -2,6 +2,8 @@
 
 Use this reference when modifying an existing UDP mobile page or reviewing where a change should live.
 
+If the task is mainly about search, filter, or backend condition payloads, also read `references/list-query.md`.
+
 ## Stack Assumptions
 
 Typical UDP mobile pages in this environment use:

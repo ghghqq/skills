@@ -1,0 +1,23 @@
+{
+  "skill_name": "udp-mobile-dev",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "In the cip-market-front-udp-h5 repository, the top keyword search on a UDP list page should query by caName instead of id. Make the minimal change and explain why that layer is the correct place to edit.",
+      "expected_output": "Updates the module JSON searchKey instead of changing QueryPanel or hook-level condition logic, and explains the top Search path.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "A UDP mobile QueryPanel returns keys like ca_behalf_name*str*like*1 and ca_status*str*in*1. Refactor the shared query utility so the backend receives camelCase field names, mapped compare values, date timestamps, and IN single values wrapped as arrays.",
+      "expected_output": "Uses a shared query-normalization utility, maps compare operators explicitly, converts date values, and preserves IN as an array contract.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "A UDP detail page driven by fieldSetForm should render multiple grouped forms but still shows one form. Identify the most likely files to inspect first, the likely root causes, and the validation steps before editing.",
+      "expected_output": "Starts from JSON fieldSets and detail hooks, treats the issue as runtime config composition, and gives a concrete validation checklist.",
+      "files": []
+    }
+  ]
+}
